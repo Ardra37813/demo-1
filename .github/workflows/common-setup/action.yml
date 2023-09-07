@@ -1,0 +1,32 @@
+name: "Common setup"
+description: "Reusable steps for jobs"
+
+inputs:
+  pat:
+    description: "personal access token used to clone repo"
+    required: true
+
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install tfenv
+      shell: bash
+      run: |
+        git clone https://github.com/tfutils/tfenv.git ~/.tfenv
+        echo "$HOME/.tfenv/bin" >> $GITHUB_PATH
+
+    - name: Setup tf
+      shell: bash
+      run: |
+        echo "Installing terraform version"
+        tfenv install
+        tfenv use 
+
+    - name: Clone modules
+      uses: actions/checkout@v2
+      with:
+        repository: tw-gcp-landing-zone/google-project-resources
+        token: ${{ inputs.pat }}
+        ref: main
+        path: tf_modules

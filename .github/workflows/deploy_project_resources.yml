@@ -1,0 +1,119 @@
+name: Deploy Project Resources
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  IAM_Svc_Account:
+    name: Terraform IAM Service Account
+    runs-on: ubuntu-latest
+    env:
+      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: ./.github/workflows/common-setup
+        with:
+          pat: ${{ secrets.GH_ACTIONS_PAT }}
+
+      - name: Terraform IAM Service Account
+        run: |
+          cd tf_modules/iam/wrapper/service-account
+          tfvars_dir=../../../../iam/service-account
+          ./../../../../scripts/deploy.sh $tfvars_dir
+
+  IAM_Custom_Roles:
+    name: Terraform IAM Custom Roles
+    runs-on: ubuntu-latest
+    env:
+      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: ./.github/workflows/common-setup
+        with:
+          pat: ${{ secrets.GH_ACTIONS_PAT }}
+
+      - name: Terraform IAM Custom Roles
+        run: |
+          cd tf_modules/iam/wrapper/custom-roles
+          tfvars_dir=../../../../iam/custom-roles
+          ./../../../../scripts/deploy.sh $tfvars_dir
+
+  Project_IAM:
+    name: Terraform Project IAM
+    needs: [ IAM_Svc_Account ]
+    runs-on: ubuntu-latest
+    env:
+      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: ./.github/workflows/common-setup
+        with:
+          pat: ${{ secrets.GH_ACTIONS_PAT }}
+
+      - name: Terraform Project IAM
+        run: |
+          cd tf_modules/iam/wrapper/project-iam
+          tfvars_dir=../../../../iam/project-iam
+          ./../../../../scripts/deploy.sh $tfvars_dir
+  KMS:
+    name: Terraform KMS
+    needs: [ IAM_Svc_Account ]
+    runs-on: ubuntu-latest
+    env:
+      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: ./.github/workflows/common-setup
+        with:
+          pat: ${{ secrets.GH_ACTIONS_PAT }}
+
+      - name: Terraform KMS
+        run: |
+          cd tf_modules/kms/wrapper/kms
+          tfvars_dir=../../../../kms
+          ./../../../../scripts/deploy.sh $tfvars_dir
+
+  GCS:
+    name: Terraform GCS
+    needs: [ IAM_Svc_Account ]
+    runs-on: ubuntu-latest
+    env:
+      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: ./.github/workflows/common-setup
+        with:
+          pat: ${{ secrets.GH_ACTIONS_PAT }}
+
+      - name: Terraform GCS
+        run: |
+          cd tf_modules/gcs/wrapper/gcs
+          tfvars_dir=../../../../gcs
+          ./../../../../scripts/deploy.sh $tfvars_dir
+
+  Networking:
+    name: Terraform Network
+    runs-on: ubuntu-latest
+    env:
+      GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: ./.github/workflows/common-setup
+        with:
+          pat: ${{ secrets.GH_ACTIONS_PAT }}
+
+      - name: Terraform Network
+        run: |
+          cd tf_modules/network/wrapper/networking
+          tfvars_dir=../../../../network
+          ./../../../../scripts/deploy.sh $tfvars_dir
+
